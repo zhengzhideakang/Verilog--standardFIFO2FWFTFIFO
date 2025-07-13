@@ -1,10 +1,21 @@
+/*
+ * @Author       : Xu Xiaokang
+ * @Email        :
+ * @Date         : 2025-06-17 20:03:03
+ * @LastEditors  : Xu Xiaokang
+ * @LastEditTime : 2025-07-13 15:15:54
+ * @Filename     : standardFIFO2FWFTFIFO_tb.sv
+ * @Description  : 标准FIFO转FWFT接口仿真文件
+*/
+
+
 module standardFIFO2FWFTFIFO_tb();
 
 timeunit 1ns;
 timeprecision 10ps;
 
 localparam STANDARD_FIFO_DIN_WDITH    = 8;
-localparam STANDARD_FIFO_READ_LATENCY = 2;
+localparam STANDARD_FIFO_READ_LATENCY = 1;
 localparam STANDARD_FIFO_DOUT_WIDTH   = 8;
 
 logic [STANDARD_FIFO_DIN_WDITH-1:0] din;
@@ -59,6 +70,13 @@ initial begin
   // 一次写入单个数据
   wr_en = 1'b1;
   #(CLKT) wr_en = 1'b0;
+
+  repeat(3) begin
+  #(CLKT*1)
+  // 一次写入单个数据
+  wr_en = 1'b1;
+  #(CLKT) wr_en = 1'b0;
+  end
 
   #(CLKT * 30) $stop;
 end

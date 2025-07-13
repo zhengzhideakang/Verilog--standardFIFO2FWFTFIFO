@@ -3,9 +3,9 @@
  * @Email        : xuxiaokang_up@qq.com
  * @Date         : 2023-09-15 21:48:18
  * @LastEditors  : Xu Xiaokang
- * @LastEditTime : 2023-09-16 15:19:55
- * @Filename     :
- * @Description  :
+ * @LastEditTime : 2025-07-13 15:16:48
+ * @Filename     : standardFIFO2FWFTFIFO.v
+ * @Description  : 标准FIFO转FWFT接口RTL文件
 */
 
 /*
@@ -22,8 +22,8 @@
 ~ 使用:
 1.READ_LATENCY = 0视为FIFO本身就是FWFT FIFO, 此时信号直连, 无任何操作
 2.对于Standard FIFO, READ_LATENCY最小为1, 此时本模块可完全将Standard FIFO的读端口转为FWFT FIFO的读端口, 与真实的FWFT FIFO完全相同
-3.对于READ_LATENCY大于等于2的情况, 因为读延迟影响, Standard FIFO的数据在连续读的过程中, 有效数据之间必然存在间隔, 所以, 此时本模块
-  无法完全模拟FWFT FIFO, fwft_fifo_empty会间歇性拉高, 无法一直为低, 因为有效数据无法连续更新。
+3.对于READ_LATENCY大于等于2的情况, 因为读延迟影响, Standard FIFO的数据在连续读的过程中, 有效数据之间必然存在间隔,
+  所以, 此时本模块无法完全模拟FWFT FIFO, fwft_fifo_empty会间歇性拉高, 无法一直为低, 因为有效数据无法连续更新。
 */
 
 `default_nettype none
@@ -59,14 +59,7 @@ if (STANDARD_FIFO_READ_LATENCY == 0) begin
   assign standard_fifo_rd_en = fwft_fifo_rd_en;
 end
 else if (STANDARD_FIFO_READ_LATENCY == 1)  begin
-  reg standard_fifo_empty_r1;
-  always @(posedge clk) begin
-    standard_fifo_empty_r1 <= standard_fifo_empty;
-  end
-
-  wire standard_fifo_empty_nedge = ~standard_fifo_empty && standard_fifo_empty_r1;
-
-  assign standard_fifo_rd_en = standard_fifo_empty_nedge || (~standard_fifo_empty && fwft_fifo_rd_en);
+  assign standard_fifo_rd_en = ~standard_fifo_empty && (fwft_fifo_empty || fwft_fifo_rd_en);
 
   always @(posedge clk) begin
     if (srst)
@@ -80,14 +73,7 @@ else if (STANDARD_FIFO_READ_LATENCY == 1)  begin
   end
 end
 else begin
-  reg standard_fifo_empty_r1;
-  always @(posedge clk) begin
-    standard_fifo_empty_r1 <= standard_fifo_empty;
-  end
-
-  wire standard_fifo_empty_nedge = ~standard_fifo_empty && standard_fifo_empty_r1;
-
-  assign standard_fifo_rd_en = standard_fifo_empty_nedge || (~standard_fifo_empty && fwft_fifo_rd_en);
+  assign standard_fifo_rd_en = ~standard_fifo_empty && (fwft_fifo_empty || fwft_fifo_rd_en);
 
   localparam READ_LATENCY_CNT_MAX = STANDARD_FIFO_READ_LATENCY-1;
   reg [$clog2(READ_LATENCY_CNT_MAX+1)-1 : 0] read_latency_cnt;
